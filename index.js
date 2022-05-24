@@ -93,6 +93,11 @@ async function run() {
       const review = await reviewCollection.find({}).toArray();
       res.send(review);
     });
+    app.post("/review", async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    });
     app.post("/order", async (req, res) => {
       const userOrder = req.body;
       const result = await orderCollection.insertOne(userOrder);
