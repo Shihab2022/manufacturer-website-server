@@ -19,6 +19,8 @@ async function run() {
     try {
       await client.connect();
       const toolsCollection = client.db("allegro-server").collection("product");
+      const reviewCollection = client.db("allegro-server").collection("review");
+      const orderCollection = client.db("allegro-server").collection("order");
 
 
     app.get('/tools',async(req,res)=>{
@@ -31,6 +33,30 @@ async function run() {
         const result=await toolsCollection.findOne(filter)
         res.send(result)
     })
+    app.get('/review',async(req,res)=>{
+      const review=await reviewCollection.find({}).toArray()
+      res.send(review)
+  })
+  app.post('/order',async(req,res)=>{
+    const userOrder=req.body
+    const result = await orderCollection.insertOne(userOrder);
+    res.send(result)
+  })
+  app.get('/order/:email',async(req,res)=>{
+    const email=req.params.email
+    // const query = {email :email };
+    const filter = { email: email };
+    const cursor = await  orderCollection.find(filter).toArray();
+    console.log(email)
+    res.send(cursor)
+  })
+  app.delete('/order/:id',async(req,res)=>{
+    const id=req.params.id
+    const filter = {_id : ObjectId(id)};
+    const cursor = await  orderCollection.deleteOne(filter);
+    // console.log(id,filter)
+    res.send(cursor)
+  })
   
     } finally {
      
