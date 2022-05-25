@@ -39,6 +39,19 @@ async function run() {
     const orderCollection = client.db("allegro-server").collection("order");
     const userCollection = client.db("allegro-server").collection("user");
 
+    //verify admin 
+    const verifyAdmin=async(req,res,next)=>{
+      const requester = req.decoded.email;
+          const requesterAccount = await userCollection.findOne({
+            email: requester,
+          });
+          if (requesterAccount.role === "admin") {
+            next()
+          }
+          else{
+            res.status(403).send({message : 'forbidden access . '})
+          }
+    }
     // login user and generate token
 
     app.put("/user/:email", async (req, res) => {
@@ -50,15 +63,29 @@ async function run() {
         $set: user,
       };
       const result = await userCollection.updateOne(filter, updateDoc, options);
-      const token = jwt.sign(
-        { email: email },
-        process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "1h" }
-      );
+      const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET);
       res.send({ result, accessToken: token });
     });
-
-    app.post('/updateUser/:email',async(req,res)=>{
+    app.get("/users", verifyJWT, async (req, res) => {
+      const result = await userCollection.find({}).toArray();
+      res.send(result);
+    });
+    app.put("/user/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: { role: "admin" },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+    app.get('/admin/:email',async(req,res)=>{
+      const email=req.params.email;
+      const user =await userCollection.findOne({email:email});
+      const isAdmin=user.role==='admin';
+      res.send({admin : isAdmin})
+    })
+    app.post("/updateUser/:email", async (req, res) => {
       const email = req.params.email;
       const userInfo = req.body;
       const filter = { email: email };
@@ -69,7 +96,7 @@ async function run() {
       const result = await userCollection.updateOne(filter, updateDoc, options);
       res.send(result);
       // res.send(email,userInfo)
-    })
+    });
 
     app.get("/user/:email", async (req, res) => {
       const email = req.params.email;
@@ -94,19 +121,26 @@ async function run() {
       const result = await toolsCollection.findOne(filter);
       res.send(result);
     });
+    app.delete("/tools/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const cursor = await toolsCollection.deleteOne(filter);
+      // console.log(id,filter)
+      res.send(cursor);
+    });
     app.get("/review", async (req, res) => {
       const review = await reviewCollection.find({}).toArray();
       res.send(review);
     });
-    app.post("/review", async (req, res) => {
+    app.post("/review",verifyJWT, async (req, res) => {
       const review = req.body;
       const result = await reviewCollection.insertOne(review);
       res.send(result);
     });
-    app.get('/order',async(req,res)=>{
-      const result =await orderCollection.find({}).toArray()
-      res.send(result)
-    })
+    app.get("/order", async (req, res) => {
+      const result = await orderCollection.find({}).toArray();
+      res.send(result);
+    });
     app.post("/order", async (req, res) => {
       const userOrder = req.body;
       const result = await orderCollection.insertOne(userOrder);
@@ -120,6 +154,13 @@ async function run() {
       // console.log(email)
       res.send(cursor);
     });
+    app.get("/paymentOrder/:id",verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const cursor = await orderCollection.findOne(filter);
+      // console.log(id,filter)
+      res.send(cursor);
+    });
     app.delete("/order/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
@@ -127,12 +168,15 @@ async function run() {
       // console.log(id,filter)
       res.send(cursor);
     });
-  } finally {
+
+
+    // end
+  } 
+  
+  finally {
   }
 }
 run().catch(console.dir);
-
-
 
 app.get("/", async (req, res) => {
   res.send("allegro server in running");
