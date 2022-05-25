@@ -83,6 +83,11 @@ async function run() {
       const tools = await toolsCollection.find({}).toArray();
       res.send(tools);
     });
+    app.post("/tools", async (req, res) => {
+      const addedProduct = req.body;
+      const result = await toolsCollection.insertOne(addedProduct);
+      res.send(result);
+    });
     app.get("/tools/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
@@ -98,6 +103,10 @@ async function run() {
       const result = await reviewCollection.insertOne(review);
       res.send(result);
     });
+    app.get('/order',async(req,res)=>{
+      const result =await orderCollection.find({}).toArray()
+      res.send(result)
+    })
     app.post("/order", async (req, res) => {
       const userOrder = req.body;
       const result = await orderCollection.insertOne(userOrder);
