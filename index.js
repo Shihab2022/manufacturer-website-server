@@ -89,7 +89,7 @@ app.post('/create-payment-intent',async(req,res)=>{
       const result = await userCollection.find({}).toArray();
       res.send(result);
     });
-    app.put("/user/admin/:id", async (req, res) => {
+    app.put("/user/admin/:id",verifyJWT ,verifyAdmin,async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const updateDoc = {
@@ -129,7 +129,7 @@ app.post('/create-payment-intent',async(req,res)=>{
       const tools = await toolsCollection.find({}).toArray();
       res.send(tools);
     });
-    app.post("/tools", async (req, res) => {
+    app.post("/tools",verifyJWT, verifyAdmin, async (req, res) => {
       const addedProduct = req.body;
       const result = await toolsCollection.insertOne(addedProduct);
       res.send(result);
@@ -140,11 +140,10 @@ app.post('/create-payment-intent',async(req,res)=>{
       const result = await toolsCollection.findOne(filter);
       res.send(result);
     });
-    app.delete("/tools/:id", async (req, res) => {
+    app.delete("/tools/:id",verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const cursor = await toolsCollection.deleteOne(filter);
-      // console.log(id,filter)
       res.send(cursor);
     });
     app.get("/review", async (req, res) => {
@@ -172,6 +171,7 @@ app.post('/create-payment-intent',async(req,res)=>{
       const updatedDoc={
         $set:{
           paid:true,
+          status:'pending',
           transactionId : payment.transactionId
         }
         
@@ -179,7 +179,7 @@ app.post('/create-payment-intent',async(req,res)=>{
       const result =await paymentCollection.insertOne(payment)
       const updateOrder=await orderCollection.updateOne(filter,updatedDoc)
       res.send(updateOrder)
-      // console.log(id,payment)
+      console.log(id,payment)
     })
     app.get("/order/:email", async (req, res) => {
       const email = req.params.email;
@@ -196,7 +196,7 @@ app.post('/create-payment-intent',async(req,res)=>{
       // console.log(id,filter)
       res.send(cursor);
     });
-    app.delete("/order/:id", async (req, res) => {
+    app.delete("/order/:id",verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const cursor = await orderCollection.deleteOne(filter);
