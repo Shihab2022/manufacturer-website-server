@@ -38,6 +38,7 @@ async function run() {
     const reviewCollection = client.db("allegro-server").collection("review");
     const orderCollection = client.db("allegro-server").collection("order");
     const userCollection = client.db("allegro-server").collection("user");
+    const paymentCollection = client.db("allegro-server").collection("payment");
 
     //verify admin 
     const verifyAdmin=async(req,res,next)=>{
@@ -100,7 +101,7 @@ app.post('/create-payment-intent',async(req,res)=>{
     app.get('/admin/:email',async(req,res)=>{
       const email=req.params.email;
       const user =await userCollection.findOne({email:email});
-      const isAdmin=user.role==='admin';
+      const isAdmin=user?.role==='admin';
       res.send({admin : isAdmin})
     })
     app.post("/updateUser/:email", async (req, res) => {
@@ -164,6 +165,22 @@ app.post('/create-payment-intent',async(req,res)=>{
       const result = await orderCollection.insertOne(userOrder);
       res.send(result);
     });
+    app.patch('/order/:id',async(req,res)=>{
+      const id=req.params.id
+      const payment =req.body
+      const filter ={_id :ObjectId(id)}
+      const updatedDoc={
+        $set:{
+          paid:true,
+          transactionId : payment.transactionId
+        }
+        
+      }
+      const result =await paymentCollection.insertOne(payment)
+      const updateOrder=await orderCollection.updateOne(filter,updatedDoc)
+      res.send(updateOrder)
+      // console.log(id,payment)
+    })
     app.get("/order/:email", async (req, res) => {
       const email = req.params.email;
       // const query = {email :email };
