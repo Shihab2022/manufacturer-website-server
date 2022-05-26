@@ -179,8 +179,24 @@ app.post('/create-payment-intent',async(req,res)=>{
       const result =await paymentCollection.insertOne(payment)
       const updateOrder=await orderCollection.updateOne(filter,updatedDoc)
       res.send(updateOrder)
-      console.log(id,payment)
+      // console.log(id,payment)
     })
+    app.patch('/order_shift/:id',verifyJWT,verifyAdmin,async(req,res)=>{
+      const id=req.params.id
+      const filter ={_id :ObjectId(id)}
+      const updatedDoc={
+        $set:{
+          status:'shift',
+        }
+        
+      }
+      const updateOrder=await orderCollection.updateOne(filter,updatedDoc)
+      res.send(updateOrder)
+      // console.log(id,payment)
+    })
+
+
+
     app.get("/order/:email", async (req, res) => {
       const email = req.params.email;
       // const query = {email :email };
