@@ -212,11 +212,11 @@ app.post('/create-payment-intent',async(req,res)=>{
       // console.log(id,filter)
       res.send(cursor);
     });
-    app.delete("/order/:id",verifyJWT, verifyAdmin, async (req, res) => {
+    app.delete("/order/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const cursor = await orderCollection.deleteOne(filter);
-      // console.log(id,filter)
+      console.log(id,filter)
       res.send(cursor);
     });
 
