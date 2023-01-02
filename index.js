@@ -2,12 +2,22 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const compression = require('compression');
+
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 let port = process.env.PORT || 5000;
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 app.use(cors());
 app.use(express.json());
+app.use(compression());
+
+
+app.get('*.js', (req, res, next) => {
+	req.url = req.url + '.gz';
+	res.set('Content-Encoding', 'br');
+	next();
+});
 
 function verifyJWT(req, res, next) {
   const authHeader = req.headers.authorization;
